@@ -1,5 +1,8 @@
+import roles
+
+
 class Game:
-    def __init__(self, main_channel):
+    def __init__(self, main_channel, number_of_roles):
         self.players = []  # list of object player
         self.state = 1  # state of the game
         """
@@ -10,13 +13,16 @@ class Game:
         self.night = 0  # number of night of the game
         self.channels = [0]  # list of object channel
         self.channels[0] = main_channel
+        self.number_of_roles = number_of_roles
+        self.role_list = [roles.Role(0, 0, "x") for i in range(number_of_roles)]
 
 
 class Player:
     def __init__(self, discord_id):
         self.id = discord_id  # discord id of the player
         self.role = "none"  # object role of the player
-        self.alive = True
+        self.alive = True  # is player alive ?
+        self.in_love = [0]  # id of player in love with, 0 for none
 
 
 class Channel:
