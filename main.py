@@ -2,7 +2,6 @@ import discord
 
 import msg
 import game
-import menu
 import reactions
 
 import mytoken
@@ -20,13 +19,21 @@ class Bot(discord.Client):
             if lg_game.state == 0:
                 lg_game.__init__(message.channel, 3)
                 print("start lg game")
-                lg_game.role_list[0].menu.channel = message.channel
-                await lg_game.role_list[0].menu.display()
-                lg_game.state = lg_game.role_list[0].menu.active_state
-                # await lg_game.role_list[0].menu.get_response()
+                x = await message.channel.send(msg.start)
+                await x.add_reaction(reactions.start)
+
+                # lg_game.role_list[0].menu.channel = message.channel
+                # await lg_game.role_list[0].menu.display()
+                # lg_game.state = lg_game.role_list[0].menu.active_state
 
     async def on_reaction_add(self, reaction, user):
-        if user != self:
+        if user.id != self.user.id:
+            if lg_game.state == 1:
+                if reaction.emoji == reactions.start:
+                    if len(lg_game.players) < lg_game.max_player:
+                        lg_game.players.append(game.Player(user.id))
+                        print(", ".join(str(i.discord_id) for i in lg_game.players))
+
             for h in range(len(lg_game.role_list)):
                 if lg_game.state == lg_game.role_list[h].menu.active_state:
                     for i, item_id in enumerate(lg_game.role_list[h].menu.allowed_id):
@@ -45,7 +52,14 @@ class Bot(discord.Client):
                                                 check = False
 
     async def on_reaction_remove(self, reaction, user):
-        if user != self:
+        if user.id != self.user.id:
+            if lg_game.state == 1:
+                if reaction.emoji == reactions.start:
+                    for i, item_id in enumerate(lg_game.players):
+                        if item_id.discord_id == user.id:
+                            del lg_game.players[i]
+                    print(", ".join(str(i.discord_id) for i in lg_game.players))
+
             for h in range(len(lg_game.role_list)):
                 if lg_game.state == lg_game.role_list[h].menu.active_state:
                     for i, item_id in enumerate(lg_game.role_list[h].menu.allowed_id):

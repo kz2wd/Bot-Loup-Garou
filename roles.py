@@ -6,4 +6,4 @@ class Role:
         self.team = team
         self.role_id = role_id
         self.name = name
-        self.menu = menu.Menu([i for i in range(3)], [250717160521859072], [0], 4, 10)
+        self.menu = menu.Menu([i for i in range(3)], [0], [0], 1, 10)

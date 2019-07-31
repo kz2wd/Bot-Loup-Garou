@@ -18,8 +18,6 @@ class Menu:
                 self.result_list[i].append(-1)
         self.active_state = active_state
 
-        print(self.result_list)
-
     async def display(self):
         x = await self.channel.send((
             "\n".join("`{} : {}`".format(msg.alphabet[i], item) for i, item in enumerate(self.choice))) +
@@ -29,10 +27,6 @@ class Menu:
             for i in range(len(self.choice)):
                 await x.add_reaction(reactions.menu[i])
 
-        if self.message_allowed:
-            async def on_message(message):
-                for i in self.allowed_id:
-                    if message.author.id == i:
-                        print("yes message menu")
+
 
 
