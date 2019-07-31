@@ -3,6 +3,7 @@ import discord
 import msg
 import game
 import reactions
+import menu
 
 import mytoken
 
@@ -21,6 +22,7 @@ class Bot(discord.Client):
                 print("start lg game")
                 x = await message.channel.send(msg.start)
                 await x.add_reaction(reactions.start)
+                await x.add_reaction(reactions.go_forward)
 
                 # lg_game.role_list[0].menu.channel = message.channel
                 # await lg_game.role_list[0].menu.display()
@@ -33,22 +35,47 @@ class Bot(discord.Client):
                     if len(lg_game.players) < lg_game.max_player:
                         lg_game.players.append(game.Player(user.id))
                         print(", ".join(str(i.discord_id) for i in lg_game.players))
+                elif reaction.emoji == reactions.go_forward:
+                    if user.id == lg_game.players[0].discord_id:
+                        menu_list.append(menu.Menu(msg.role_list, [lg_game.players[0].discord_id]
+                                                   , lg_game.channels[0], len(lg_game.players), 2))
+                        await menu_list[0].display()
+                        lg_game.state = 2
+                        print("state = 2")
 
-            for h in range(len(lg_game.role_list)):
-                if lg_game.state == lg_game.role_list[h].menu.active_state:
-                    for i, item_id in enumerate(lg_game.role_list[h].menu.allowed_id):
+            for h in menu_list:
+                if lg_game.state == h.active_state:
+                    for i, item_id in enumerate(h.allowed_id):
                         if user.id == item_id:
                             print("id allowed")
                             for j, item in enumerate(reactions.menu):
                                 if item == reaction.emoji:
                                     check = True
                                     print("reaction found")
-                                    for k in range(lg_game.role_list[h].menu.number_of_response):
+                                    for k in range(h.number_of_response):
                                         if check:
-                                            if lg_game.role_list[h].menu.result_list[i][k + 1] == -1:
+                                            if h.result_list[i][k + 1] == -1:
                                                 print("operating change")
-                                                lg_game.role_list[h].menu.result_list[i][k + 1] = j
-                                                print(lg_game.role_list[h].menu.result_list)
+                                                h.result_list[i][k + 1] = j
+                                                print(h.result_list)
+                                                check = False
+
+            # only for roles
+            for h in lg_game.role_list:
+                if lg_game.state == h.menu.active_state:
+                    for i, item_id in enumerate(h.menu.allowed_id):
+                        if user.id == item_id:
+                            print("id allowed")
+                            for j, item in enumerate(reactions.menu):
+                                if item == reaction.emoji:
+                                    check = True
+                                    print("reaction found")
+                                    for k in range(h.menu.number_of_response):
+                                        if check:
+                                            if h.menu.result_list[i][k + 1] == -1:
+                                                print("operating change")
+                                                h.menu.result_list[i][k + 1] = j
+                                                print(h.menu.result_list)
                                                 check = False
 
     async def on_reaction_remove(self, reaction, user):
@@ -60,20 +87,33 @@ class Bot(discord.Client):
                             del lg_game.players[i]
                     print(", ".join(str(i.discord_id) for i in lg_game.players))
 
-            for h in range(len(lg_game.role_list)):
-                if lg_game.state == lg_game.role_list[h].menu.active_state:
-                    for i, item_id in enumerate(lg_game.role_list[h].menu.allowed_id):
+            for h in menu_list:
+                if lg_game.state == h.active_state:
+                    for i, item_id in enumerate(h.allowed_id):
                         if user.id == item_id:
                             for j, item in enumerate(reactions.menu):
                                 if item == reaction.emoji:
-                                    for k in range(lg_game.role_list[h].menu.number_of_response):
-                                        if lg_game.role_list[h].menu.result_list[i][k + 1] == j:
-                                            lg_game.role_list[h].menu.result_list[i][k + 1] = -1
-                                            print(lg_game.role_list[h].menu.result_list)
+                                    for k in range(h.number_of_response):
+                                        if h.result_list[i][k + 1] == j:
+                                            h.result_list[i][k + 1] = -1
+                                            print(h.result_list)
+
+            # for role only
+            for h in lg_game.role_list:
+                if lg_game.state == h.menu.active_state:
+                    for i, item_id in enumerate(h.menu.allowed_id):
+                        if user.id == item_id:
+                            for j, item in enumerate(reactions.menu):
+                                if item == reaction.emoji:
+                                    for k in range(h.menu.number_of_response):
+                                        if h.menu.result_list[i][k + 1] == j:
+                                            h.menu.result_list[i][k + 1] = -1
+                                            print(h.menu.result_list)
 
 
 lg_game = game.Game(0, 3)
 lg_game.state = 0
+menu_list = []
 
 client = Bot()
 

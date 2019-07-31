@@ -9,13 +9,14 @@ class Game:
         state statues:
         0 not initialized
         1 game initialized
+        2 role selection
         """
         self.night = 0  # number of night of the game
         self.channels = [0]  # list of object channel
         self.channels[0] = main_channel
         self.number_of_roles = number_of_roles
         self.role_list = [roles.Role(0, 0, "x") for i in range(number_of_roles)]
-        self.max_player = 20
+        self.max_player = 26
 
 
 class Player:
