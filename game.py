@@ -22,7 +22,7 @@ class Game:
 class Player:
     def __init__(self, discord_id):
         self.discord_id = discord_id  # discord id of the player
-        self.role = "none"  # object role of the player
+        self.role = -1  # object role of the player
         self.alive = True  # is player alive ?
         self.in_love = [0]  # id of player in love with, 0 for none
 

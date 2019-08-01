@@ -4,6 +4,7 @@ import msg
 import game
 import reactions
 import menu
+import roles
 
 import mytoken
 
@@ -36,12 +37,20 @@ class Bot(discord.Client):
                         lg_game.players.append(game.Player(user.id))
                         print(", ".join(str(i.discord_id) for i in lg_game.players))
                 elif reaction.emoji == reactions.go_forward:
-                    if user.id == lg_game.players[0].discord_id:
-                        menu_list.append(menu.Menu(msg.role_list, [lg_game.players[0].discord_id]
-                                                   , lg_game.channels[0], len(lg_game.players), 2))
-                        await menu_list[0].display()
-                        lg_game.state = 2
-                        print("state = 2")
+                    if len(lg_game.players) > 0:
+                        if user.id == lg_game.players[0].discord_id:
+                            menu_list.append(menu.Menu(msg.role_list, [lg_game.players[0].discord_id]
+                                                       , lg_game.channels[0], len(lg_game.players), 2))
+                            await menu_list[0].display()
+                            lg_game.state = 2
+                            print("state = 2")
+                            x = await lg_game.channels[0].send(msg.validation)
+                            await x.add_reaction(reactions.go_forward)
+            elif lg_game.state == 2:
+                if reaction.emoji == reactions.go_forward and user.id == lg_game.players[0].discord_id:
+                    lg_game.players = roles.repartitor(lg_game.players, menu_list[0].result_list)
+                    print("roles attributed")
+                    print(", ".join("{} : {}".format(i.discord_id, i.role) for i in lg_game.players))
 
             for h in menu_list:
                 if lg_game.state == h.active_state:

@@ -10,3 +10,5 @@ start = "Cliquez pour rejoindre la partie"
 
 role_list = ["Cupidon", "Sorcière", "Voyante", "Chasseur", "Dictateur", "Fossoyeur", "Loup noir", "Loup blanc",
              "Loup", "Loup", "Loup", "Loup", "Villageois", "Villageois", "Villageois", "Villageois"]
+
+validation = "`Valider`"
