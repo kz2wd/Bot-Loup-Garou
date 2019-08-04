@@ -16,7 +16,7 @@ class Game:
         self.channels = [0]  # list of object channel
         self.channels[0] = main_channel
         self.number_of_roles = number_of_roles
-        self.role_list = [roles.Role(0, 0, "x") for i in range(number_of_roles)]
+        self.role_list = roles.role_list()
         self.max_player = 26
         self.list_of_dead = []
         self.menu_list = []
@@ -32,26 +32,25 @@ class Game:
     def set_roles(self):
         for i in self.players:
             if i.role == 0:
-                i.role = roles.cupidon
+                i.role = self.role_list[0]
             elif i.role == 1:
-                i.role = roles.sorciere
+                i.role = self.role_list[1]
             elif i.role == 2:
-                i.role = roles.voyante
+                i.role = self.role_list[2]
             elif i.role == 3:
-                i.role = roles.chasseur
+                i.role = self.role_list[3]
             elif i.role == 4:
-                i.role = roles.dictateur
+                i.role = self.role_list[4]
             elif i.role == 5:
-                i.role = roles.fossoyeur
+                i.role = self.role_list[5]
             elif i.role == 6:
-                i.role = roles.loup_noir
+                i.role = self.role_list[6]
             elif i.role == 7:
-                i.role = roles.loup_blanc
+                i.role = self.role_list[7]
             elif 7 < i.role < 12:
-                i.role = roles.loup
+                i.role = self.role_list[8]
             elif 11 < i.role < 16:
-                i.role = roles.villageois
-
+                i.role = self.role_list[9]
 
 
 class Player:
