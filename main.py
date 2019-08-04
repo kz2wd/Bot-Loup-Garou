@@ -39,20 +39,28 @@ class Bot(discord.Client):
                 elif reaction.emoji == reactions.go_forward:
                     if len(lg_game.players) > 0:
                         if user.id == lg_game.players[0].discord_id:
-                            menu_list.append(menu.Menu(msg.role_list, [lg_game.players[0].discord_id]
-                                                       , lg_game.channels[0], len(lg_game.players), 2))
-                            await menu_list[0].display()
+                            lg_game.menu_list.append(menu.Menu(msg.role_list, [lg_game.players[0].discord_id]
+                                                               , lg_game.channels[0], len(lg_game.players), 2))
                             lg_game.state = 2
                             print("state = 2")
-                            x = await lg_game.channels[0].send(msg.validation)
-                            await x.add_reaction(reactions.go_forward)
+                            await lg_game.menu_list[0].display()
+                            await lg_game.menu_list[0].validate()
             elif lg_game.state == 2:
                 if reaction.emoji == reactions.go_forward and user.id == lg_game.players[0].discord_id:
-                    lg_game.players = roles.repartitor(lg_game.players, menu_list[0].result_list)
-                    print("roles attributed")
-                    print(", ".join("{} : {}".format(i.discord_id, i.role) for i in lg_game.players))
+                    check = True
+                    for i in lg_game.menu_list[0].result_list[0]:
+                        if i == -1:
+                            check = False
+                    if check:
+                        lg_game.repartitor()
 
-            for h in menu_list:
+                        print("roles attributed")
+                        print(", ".join("{} : {}".format(i.discord_id, i.role) for i in lg_game.players))
+                        lg_game.state = 3
+                        print("state = 3")
+                        await lg_game.channels[0].send(msg.end_of_day)
+
+            for h in lg_game.menu_list:
                 if lg_game.state == h.active_state:
                     for i, item_id in enumerate(h.allowed_id):
                         if user.id == item_id:
@@ -96,7 +104,7 @@ class Bot(discord.Client):
                             del lg_game.players[i]
                     print(", ".join(str(i.discord_id) for i in lg_game.players))
 
-            for h in menu_list:
+            for h in lg_game.menu_list:
                 if lg_game.state == h.active_state:
                     for i, item_id in enumerate(h.allowed_id):
                         if user.id == item_id:
@@ -122,7 +130,6 @@ class Bot(discord.Client):
 
 lg_game = game.Game(0, 3)
 lg_game.state = 0
-menu_list = []
 
 client = Bot()
 

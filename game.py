@@ -1,4 +1,5 @@
 import roles
+import random
 
 
 class Game:
@@ -17,6 +18,40 @@ class Game:
         self.number_of_roles = number_of_roles
         self.role_list = [roles.Role(0, 0, "x") for i in range(number_of_roles)]
         self.max_player = 26
+        self.list_of_dead = []
+        self.menu_list = []
+
+    def repartitor(self):
+        print(self.menu_list[0].result_list)
+        del self.menu_list[0].result_list[0][0]
+        random.shuffle(self.menu_list[0].result_list[0])
+        for i, item in enumerate(self.players):
+            item.role = self.menu_list[0].result_list[0][i]
+        return self.players
+
+    def set_roles(self):
+        for i in self.players:
+            if i.role == 0:
+                i.role = roles.cupidon
+            elif i.role == 1:
+                i.role = roles.sorciere
+            elif i.role == 2:
+                i.role = roles.voyante
+            elif i.role == 3:
+                i.role = roles.chasseur
+            elif i.role == 4:
+                i.role = roles.dictateur
+            elif i.role == 5:
+                i.role = roles.fossoyeur
+            elif i.role == 6:
+                i.role = roles.loup_noir
+            elif i.role == 7:
+                i.role = roles.loup_blanc
+            elif 7 < i.role < 12:
+                i.role = roles.loup
+            elif 11 < i.role < 16:
+                i.role = roles.villageois
+
 
 
 class Player:

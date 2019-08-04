@@ -27,6 +27,10 @@ class Menu:
             for i in range(len(self.choice)):
                 await x.add_reaction(reactions.menu[i])
 
+    async def validate(self):
+        x = await self.channel.send(msg.validation)
+        await x.add_reaction(reactions.go_forward)
+
 
 
 
