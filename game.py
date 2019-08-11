@@ -4,6 +4,7 @@ import discord
 import roles
 import random
 import msg
+import menu
 
 
 class Game:
@@ -24,7 +25,6 @@ class Game:
         self.max_player = 26
         self.list_of_dead = []
         self.menu_list = []
-        self.used_role = []
 
     def repartitor(self):
         print(self.menu_list[0].result_list)
@@ -38,34 +38,24 @@ class Game:
         for i in self.players:
             if i.role == 0:
                 i.role = self.role_list[0]
-                self.used_role.append(0)
             elif i.role == 1:
                 i.role = self.role_list[1]
-                self.used_role.append(1)
             elif i.role == 2:
                 i.role = self.role_list[2]
-                self.used_role.append(2)
             elif i.role == 3:
                 i.role = self.role_list[3]
-                self.used_role.append(3)
             elif i.role == 4:
                 i.role = self.role_list[4]
-                self.used_role.append(4)
             elif i.role == 5:
                 i.role = self.role_list[5]
-                self.used_role.append(5)
             elif i.role == 6:
                 i.role = self.role_list[6]
-                self.used_role.append(6)
             elif i.role == 7:
                 i.role = self.role_list[7]
-                self.used_role.append(7)
             elif 7 < i.role < 12:
                 i.role = self.role_list[8]
-                self.used_role.append(8)
             elif 11 < i.role < 16:
                 i.role = self.role_list[9]
-                self.used_role.append(9)
 
     async def create_channels_for_roles(self):
 
@@ -122,23 +112,60 @@ class Game:
 
     async def play_night(self):
 
-        if 0 in self.used_role:  # if there is cupidon
-            if self.night == 0:  # if it is the first night
-                await self.channels[0].send(msg.cupidon_play)
+        players_name = []
+        players_eatable = []
+        lg = []
+        for i in self.players:
+            players_name.append(self.channels[0].guild.get_member(i.discord_id).name)
+            if i.role.role_id != 6 or i.role.role_id != 7 or i.role.role_id != 8:
+                players_eatable.append(self.channels[0].guild.get_member(i.discord_id).name)
+            else:
+                lg.append(i.discord_id)
 
-        if 2 in self.used_role:  # if there is voyante
-            await self.channels[0].send(msg.voyante_play)
+        # turn before lg
+        for i in self.players:
+            if 0 == i.role.role_id:  # if there is cupidon
+                if self.night == 0:  # if it is the first night
+                    await self.channels[0].send(msg.cupidon_play)
+                    i.role.menu = menu.Menu(players_name, i.discord_id, i.role.channel[0], 2, self.state)
+                    await i.role.menu.display()
 
-        await self.channels[0].send(msg.lg_play)  # lg play, they must or the game is end
+            if 2 == i.role.role_id:  # if there is voyante
 
-        if 6 in self.used_role:  # if there is loup noir
-            await self.channels[0].send(msg.loup_noir_play)
+                players_to_watch = []
+                for j in self.players:
+                    if j.role.role_id != 2:
+                        players_to_watch.append(self.channels[0].guild.get_member(i.discord_id).name)
 
-        if 1 in self.used_role:  # if there is sorciere
-            await self.channels[0].send(msg.sorciere_play)
+                await self.channels[0].send(msg.voyante_play)
+                i.role.menu = menu.Menu(players_to_watch, i.discord_id, i.role.channel[0], 1, self.state)
+                await i.role.menu.display()
 
-        if 4 in self.used_role:  # if there is dictateur
-            await self.channels[0].send(msg.dictateur_play)
+        # lg turn
+        lg_did_not_played = True
+        for i in self.players:
+            if 6 == i.role.role_id or 7 == i.role.role_id or 8 == i.role.role_id and lg_did_not_played:
+                lg_did_not_played = False
+                await self.channels[0].send(msg.lg_play)  # lg play
+                i.role.menu = menu.Menu(players_eatable, lg, i.role.channel[-1], 1, self.state)
+                await i.role.menu.display()
+
+            if 6 == i.role.role_id and i.role.ability == 1:  # if there is loup noir
+                await self.channels[0].send(msg.loup_noir_play)
+                await i.role.channel[0].send("Voullez vous infecter la victime de ce soir ?")
+                i.role.menu = menu.Menu(["Oui", "Non"], lg, i.role.channel[0], 1, self.state)
+                await i.role.menu.display()
+
+        #  turn after lg
+        for i in self.players:
+
+            if 1 == i.role.role_id and i.role.ability > 0:  # if there is sorciere
+                await self.channels[0].send(msg.sorciere_play)
+
+            if 4 == i.role.role_id:  # if there is dictateur
+                await self.channels[0].send(msg.dictateur_play)
+
+        self.night += 1
 
 
 class Player:

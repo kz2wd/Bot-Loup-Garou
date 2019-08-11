@@ -1,4 +1,3 @@
-import menu
 
 
 class Role:
@@ -6,7 +5,7 @@ class Role:
         self.team = team  # role's team, 1 for wolf, 2 for innocent, 3 for white wolf
         self.role_id = role_id  # role's id
         self.name = name  # role's name
-        self.menu = menu.Menu([i for i in range(3)], [0], [0], 1, 10)  # role's attributed menu
+        self.menu = 0  # role's attributed menu
         self.ability = ability  # special variable for role's ability
         self.channel = []
 
@@ -29,4 +28,3 @@ def role_list():
     # Villageois : do nothing
 
     return roles
-

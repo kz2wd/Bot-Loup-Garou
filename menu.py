@@ -30,7 +30,3 @@ class Menu:
     async def validate(self):
         x = await self.channel.send(msg.validation)
         await x.add_reaction(reactions.go_forward)
-
-
-
-
