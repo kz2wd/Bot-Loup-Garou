@@ -1,10 +1,12 @@
+
+# All the print are just for the tests and corrections
+
 import discord
 
 import msg
 import game
 import reactions
 import menu
-import roles
 
 import mytoken
 
@@ -29,6 +31,17 @@ class Bot(discord.Client):
                 # await lg_game.role_list[0].menu.display()
                 # lg_game.state = lg_game.role_list[0].menu.active_state
 
+        elif message.content == "!!del channel":
+            if len(lg_game.channels) > 1 and message.author.id == 250717160521859072:
+                for i in range(len(lg_game.channels) - 1):
+                    await lg_game.channels[-1].delete()
+                    del lg_game.channels[-1]
+                    await message.channel.send("Channel deleted")
+
+            else:
+                await message.channel.send("Can't delete any channel")
+                print(len(lg_game.channels))
+
     async def on_reaction_add(self, reaction, user):
         if user.id != self.user.id:
             if lg_game.state == 1:
@@ -39,26 +52,54 @@ class Bot(discord.Client):
                 elif reaction.emoji == reactions.go_forward:
                     if len(lg_game.players) > 0:
                         if user.id == lg_game.players[0].discord_id:
-                            lg_game.menu_list.append(menu.Menu(msg.role_list, [lg_game.players[0].discord_id]
-                                                               , lg_game.channels[0], len(lg_game.players), 2))
+                            lg_game.menu_list.append(menu.Menu(msg.role_list, [lg_game.players[0].discord_id],
+                                                               lg_game.channels[0], len(lg_game.players), 2))
                             lg_game.state = 2
                             print("state = 2")
                             await lg_game.menu_list[0].display()
                             await lg_game.menu_list[0].validate()
             elif lg_game.state == 2:
                 if reaction.emoji == reactions.go_forward and user.id == lg_game.players[0].discord_id:
-                    check = True
+
+                    # check if there is a role for all players
+                    check_role = True
                     for i in lg_game.menu_list[0].result_list[0]:
                         if i == -1:
-                            check = False
-                    if check:
-                        lg_game.repartitor()
+                            check_role = False
+                            print("Role missing")
+
+                    # check if there is at least 2 roles from different team
+                    check_team = True
+                    team_innocent = 0
+                    other_team = 0
+                    for i in lg_game.menu_list[0].result_list[0]:
+                        if 0 == i < 6 or 11 < i < 16:
+                            team_innocent += 1
+                        else:
+                            other_team += 1
+                    if team_innocent == 0 or other_team == 0:
+                        check_team = False
+                        print("Team missing")
+
+                    if check_role and check_team:
+
+                        del check_role, check_team, team_innocent, other_team  # free memory
+
+                        lg_game.repartitor()  # mix the role list and attribute them to a player
+                        lg_game.set_roles()  # insert roles objects in game object
 
                         print("roles attributed")
-                        print(", ".join("{} : {}".format(i.discord_id, i.role) for i in lg_game.players))
-                        lg_game.state = 3
+                        print(", ".join("{} : {}".format(i.discord_id, i.role.name) for i in lg_game.players))
                         print("state = 3")
+
+                        lg_game.state = 3
+
                         await lg_game.channels[0].send(msg.end_of_day)
+
+                        # create channels for roles
+                        await lg_game.create_channels_for_roles()
+
+                        # display actions for players
 
             for h in lg_game.menu_list:
                 if lg_game.state == h.active_state:

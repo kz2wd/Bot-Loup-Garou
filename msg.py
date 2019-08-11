@@ -13,14 +13,19 @@ role_list = ["Cupidon", "Sorcière", "Voyante", "Chasseur", "Dictateur", "Fossoy
 
 validation = "`Valider`"
 
-end_of_day = "Le soleil se couche, chacun regagne sa maison et se prépare pour une nuit ... qui peut être la dernière"
+end_of_day = "Le soleil se couche, chacun regagne sa maison et se prépare pour une nuit ... " \
+             "qui sera peut-être la dernière"
 
 cupidon_play = "Cupidon va choisir deux amoureux"
 
-voyante_play = "La voyante va observer quelqu'un"
+voyante_play = "La Voyante va observer quelqu'un"
 
-lg_play = "Les loup-garous vont choisir une victime"
+lg_play = "Les Loup-Garous vont choisir une victime"
 
-sorciere_play = "La sorcière va choisir si elle fait usage d'une de ses potions"
+loup_noir_play = "Le Loup Noir va choisir s'il infecte la victime"
+
+sorciere_play = "La Sorcière va choisir si elle fait usage d'une de ses potions"
+
+dictateur_play = "Le Dictateur va décider s'il fait un coup d'état"
 
 day_start = "Le village se réveille"
