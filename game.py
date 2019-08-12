@@ -1,5 +1,6 @@
 
 import discord
+import time
 
 import roles
 import random
@@ -25,6 +26,8 @@ class Game:
         self.max_player = 26
         self.list_of_dead = []
         self.menu_list = []
+        self.turn = 0
+        self.turn_role = []
 
     def repartitor(self):
         print(self.menu_list[0].result_list)
@@ -78,7 +81,6 @@ class Game:
                     for j in self.players:
                         if j.role.role_id in [6, 7, 8]:  # 2 in ?p
                             lg_counter.append(j.discord_id)
-                    print("nb lg : {}".format(len(lg_counter)))
 
                     if len(lg_counter) == 1:
                         perm = {self.channels[0].guild.default_role: discord.PermissionOverwrite(read_messages=False),
@@ -103,6 +105,7 @@ class Game:
                         print("3 lg")
                     else:
                         perm = {self.channels[0].guild.default_role: discord.PermissionOverwrite(read_messages=False)}
+                        await self.channels[0].send("Trop de Loup-Garous, veillez modifier le programme")
 
                     lg_channel = await self.channels[0].guild.create_text_channel('Loup Garou', overwrites=perm)
                     i.role.channel.append(lg_channel)
@@ -117,20 +120,22 @@ class Game:
         lg = []
         for i in self.players:
             players_name.append(self.channels[0].guild.get_member(i.discord_id).name)
-            if i.role.role_id != 6 or i.role.role_id != 7 or i.role.role_id != 8:
+            if i.role.role_id != 6 and i.role.role_id != 7 and i.role.role_id != 8:
                 players_eatable.append(self.channels[0].guild.get_member(i.discord_id).name)
             else:
                 lg.append(i.discord_id)
 
         # turn before lg
+
         for i in self.players:
             if 0 == i.role.role_id:  # if there is cupidon
                 if self.night == 0:  # if it is the first night
                     await self.channels[0].send(msg.cupidon_play)
-                    i.role.menu = menu.Menu(players_name, i.discord_id, i.role.channel[0], 2, self.state)
+                    i.role.menu = menu.Menu(players_name, [i.discord_id], i.role.channel[0], 2, self.state)
                     await i.role.menu.display()
+                    await i.role.menu.validate()
 
-            if 2 == i.role.role_id:  # if there is voyante
+            elif 2 == i.role.role_id:  # if there is voyante
 
                 players_to_watch = []
                 for j in self.players:
@@ -138,8 +143,11 @@ class Game:
                         players_to_watch.append(self.channels[0].guild.get_member(i.discord_id).name)
 
                 await self.channels[0].send(msg.voyante_play)
-                i.role.menu = menu.Menu(players_to_watch, i.discord_id, i.role.channel[0], 1, self.state)
+                i.role.menu = menu.Menu(players_to_watch, [i.discord_id], i.role.channel[0], 1, self.state)
                 await i.role.menu.display()
+                await i.role.menu.validate()
+
+        self.wait_next_turn()
 
         # lg turn
         lg_did_not_played = True
@@ -149,12 +157,16 @@ class Game:
                 await self.channels[0].send(msg.lg_play)  # lg play
                 i.role.menu = menu.Menu(players_eatable, lg, i.role.channel[-1], 1, self.state)
                 await i.role.menu.display()
+                await i.role.menu.validate()
 
             if 6 == i.role.role_id and i.role.ability == 1:  # if there is loup noir
                 await self.channels[0].send(msg.loup_noir_play)
                 await i.role.channel[0].send("Voullez vous infecter la victime de ce soir ?")
                 i.role.menu = menu.Menu(["Oui", "Non"], lg, i.role.channel[0], 1, self.state)
                 await i.role.menu.display()
+                await i.role.menu.validate()
+
+        self.wait_next_turn()
 
         #  turn after lg
         for i in self.players:
@@ -162,16 +174,63 @@ class Game:
             if 1 == i.role.role_id and i.role.ability > 0:  # if there is sorciere
                 await self.channels[0].send(msg.sorciere_play)
 
-            if 4 == i.role.role_id:  # if there is dictateur
+            elif 4 == i.role.role_id:  # if there is dictateur
                 await self.channels[0].send(msg.dictateur_play)
 
+        self.wait_next_turn()
+
         self.night += 1
+        self.turn = 0
+
+    def check_turn(self):
+
+        if self.turn == 0:
+            if self.night == 0:
+                self.turn_role = [0, 2]
+            else:
+                self.turn_role = [2]
+        elif self.turn == 2:
+            self.turn_role = [6, 7, 8]
+        else:
+            self.turn_role = [1, 4]
+
+        roles_played = True
+        for i in self.players:
+            for j in self.turn_role:
+                if i.role.role_id == j:
+                    if i.role.menu.active_state > 0:
+                        roles_played = False
+
+        if roles_played:
+            self.turn += 1
+            print("turn :")
+            print(self.turn)
+
+    def wait_next_turn(self):
+
+        time_counter = 0
+
+        while self.turn != 1:
+            self.check_turn()
+            time.sleep(1)
+            time_counter += 1
+
+            if time_counter == 20:
+                self.turn += 1
+
+                for i in self.players:
+                    for j in self.turn_role:
+                        if i.role.role_id == j and i.role.menu.active_state > 0:
+                            for k in range(len(i.role.menu.allowed_id)):
+                                for l in range(i.role.menu.number_of_response):
+                                    if i.role.menu.result_list[k][l + 1] == -1:
+                                        i.role.menu.result_list[k][l + 1] = random.randint(0, len(i.role.menu.choice))
 
 
 class Player:
     def __init__(self, discord_id):
         self.discord_id = discord_id  # discord id of the player
-        self.role = -1  # object role of the player
+        self.role = roles.Role(-10, -10, "None", -10)  # object role of the player
         self.alive = True  # is player alive ?
         self.in_love = [0]  # id of player in love with, 0 for none
 

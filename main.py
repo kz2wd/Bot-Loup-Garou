@@ -34,9 +34,9 @@ class Bot(discord.Client):
         elif message.content == "!!del channel":
             if len(lg_game.channels) > 1 and message.author.id == 250717160521859072:
                 for i in range(len(lg_game.channels) - 1):
+                    await message.channel.send("Channel deleted")
                     await lg_game.channels[-1].delete()
                     del lg_game.channels[-1]
-                    await message.channel.send("Channel deleted")
 
             else:
                 await message.channel.send("Can't delete any channel")
@@ -81,6 +81,8 @@ class Bot(discord.Client):
                         check_team = False
                         print("Team missing")
 
+                    check_team = True
+
                     if check_role and check_team:
 
                         del check_role, check_team, team_innocent, other_team  # free memory
@@ -100,6 +102,7 @@ class Bot(discord.Client):
                         await lg_game.create_channels_for_roles()
 
                         # display actions for players
+                        await lg_game.play_night()
 
             for h in lg_game.menu_list:
                 if lg_game.state == h.active_state:
@@ -108,17 +111,17 @@ class Bot(discord.Client):
                             print("id allowed")
                             for j, item in enumerate(reactions.menu):
                                 if item == reaction.emoji:
-                                    check = True
+                                    number_of_response_not_filled = True
                                     print("reaction found")
                                     for k in range(h.number_of_response):
-                                        if check:
+                                        if number_of_response_not_filled:
                                             if h.result_list[i][k + 1] == -1:
                                                 print("operating change")
                                                 h.result_list[i][k + 1] = j
                                                 print(h.result_list)
-                                                check = False
+                                                number_of_response_not_filled = False
 
-            # only for roles
+                        """# only for roles
             for h in lg_game.role_list:
                 if lg_game.state == h.menu.active_state:
                     for i, item_id in enumerate(h.menu.allowed_id):
@@ -126,15 +129,43 @@ class Bot(discord.Client):
                             print("id allowed")
                             for j, item in enumerate(reactions.menu):
                                 if item == reaction.emoji:
-                                    check = True
+                                    number_of_response_not_filled = True
                                     print("reaction found")
                                     for k in range(h.menu.number_of_response):
-                                        if check:
+                                        if number_of_response_not_filled:
                                             if h.menu.result_list[i][k + 1] == -1:
                                                 print("operating change")
                                                 h.menu.result_list[i][k + 1] = j
                                                 print(h.menu.result_list)
-                                                check = False
+                                                number_of_response_not_filled = False
+                            if reaction.emoji == reactions.go_forward:
+                                h.menu.active_state = -1
+                                print("Choice validated")"""
+
+            for i in lg_game.players:
+                if lg_game.state == i.role.menu.active_state:
+                    for j, item_id in enumerate(i.role.menu.allowed_id):
+                        if user.id == item_id:
+                            print("id allowed")
+                            for k, item in enumerate(reactions.menu):
+                                if item == reaction.emoji:
+                                    number_of_response_not_filled = True
+                                    print("reaction found")
+                                    for l in range(i.role.menu.number_of_response):
+                                        if number_of_response_not_filled and i.role.menu.result_list[j][l + 1] == -1:
+                                            i.role.menu.result_list[j][l + 1] = k
+                                            print(i.role.menu.result_list)
+                                            number_of_response_not_filled = False
+
+                            if reaction.emoji == reactions.go_forward:
+                                all_ids_selected = True
+                                for k in range(len(i.role.menu.allowed_id)):
+                                    for l in range(i.role.menu.number_of_response):
+                                        if i.role.menu.result_list[k][l + 1] == -1:
+                                            all_ids_selected = False
+                                if all_ids_selected:
+                                    i.role.menu.active_state = -1
+                                    await i.role.menu.channel.send("Choix validé")
 
     async def on_reaction_remove(self, reaction, user):
         if user.id != self.user.id:
