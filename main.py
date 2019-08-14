@@ -104,6 +104,9 @@ class Bot(discord.Client):
                         # display actions for players
                         await lg_game.play_night()
 
+                        # day time
+                        await lg_game.play_day()
+
             for h in lg_game.menu_list:
                 if lg_game.state == h.active_state:
                     for i, item_id in enumerate(h.allowed_id):

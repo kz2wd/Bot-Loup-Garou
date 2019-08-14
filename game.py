@@ -127,7 +127,9 @@ class Game:
 
         # turn before lg
 
+        # get players decisions
         for i in self.players:
+
             if 0 == i.role.role_id:  # if there is cupidon
                 if self.night == 0:  # if it is the first night
                     await self.channels[0].send(msg.cupidon_play)
@@ -147,11 +149,27 @@ class Game:
                 await i.role.menu.display()
                 await i.role.menu.validate()
 
-        self.wait_next_turn()
+        await self.wait_next_turn(1)
+
+        # processing
+        for i in self.players:
+
+            if 0 == i.role.role_id and self.night == 0:
+
+                self.players[i.role.menu.result_list[0][1]].in_love = [
+                    self.players[i.role.menu.result_list[0][2]].discord_id]
+                self.players[i.role.menu.result_list[0][2]].in_love = [
+                    self.players[i.role.menu.result_list[0][1]].discord_id]
+
+            elif 2 == i.role.role_id:
+
+
+
 
         # lg turn
         lg_did_not_played = True
         for i in self.players:
+
             if 6 == i.role.role_id or 7 == i.role.role_id or 8 == i.role.role_id and lg_did_not_played:
                 lg_did_not_played = False
                 await self.channels[0].send(msg.lg_play)  # lg play
@@ -166,7 +184,7 @@ class Game:
                 await i.role.menu.display()
                 await i.role.menu.validate()
 
-        self.wait_next_turn()
+        await self.wait_next_turn(2)
 
         #  turn after lg
         for i in self.players:
@@ -177,7 +195,7 @@ class Game:
             elif 4 == i.role.role_id:  # if there is dictateur
                 await self.channels[0].send(msg.dictateur_play)
 
-        self.wait_next_turn()
+        await self.wait_next_turn(3)
 
         self.night += 1
         self.turn = 0
@@ -206,17 +224,18 @@ class Game:
             print("turn :")
             print(self.turn)
 
-    def wait_next_turn(self):
+    async def wait_next_turn(self, next_turn):
 
         time_counter = 0
 
-        while self.turn != 1:
+        while self.turn != next_turn:
             self.check_turn()
             time.sleep(1)
             time_counter += 1
 
-            if time_counter == 20:
+            if time_counter == 30:
                 self.turn += 1
+                print("end choice time")
 
                 for i in self.players:
                     for j in self.turn_role:
@@ -225,6 +244,12 @@ class Game:
                                 for l in range(i.role.menu.number_of_response):
                                     if i.role.menu.result_list[k][l + 1] == -1:
                                         i.role.menu.result_list[k][l + 1] = random.randint(0, len(i.role.menu.choice))
+                                        await i.role.channel[0].\
+                                            send("Vous avez mis trop de temps à choisir. Le hasard a décidé pour vous")
+
+    async def play_day(self):
+
+        await self.channels[0].send(msg.day_start)
 
 
 class Player:
