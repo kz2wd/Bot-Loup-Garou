@@ -1,4 +1,3 @@
-
 # All the print are just for the tests and corrections
 
 import discord
@@ -31,7 +30,7 @@ class Bot(discord.Client):
                 # await lg_game.role_list[0].menu.display()
                 # lg_game.state = lg_game.role_list[0].menu.active_state
 
-        elif message.content == "!!del channel":
+        elif message.content == "del":
             if len(lg_game.channels) > 1 and message.author.id == 250717160521859072:
                 for i in range(len(lg_game.channels) - 1):
                     await message.channel.send("Channel deleted")
@@ -101,11 +100,33 @@ class Bot(discord.Client):
                         # create channels for roles
                         await lg_game.create_channels_for_roles()
 
-                        # display actions for players
-                        await lg_game.play_night()
+                        winner = 0
+                        while winner == 0:
 
-                        # day time
-                        await lg_game.play_day()
+                            # night time
+                            await lg_game.play_night()
+
+                            # morning time
+                            await lg_game.play_morning()
+                            # winner = lg_game.check_winner()
+
+                            if winner == 0:
+                                # vote time
+                                await lg_game.play_vote()
+                                winner = lg_game.check_winner()
+
+                        await lg_game.display_winner(winner)
+
+                        channel_counter = len(lg_game.channels) - 1
+                        if len(lg_game.channels) > 1:
+                            for i in range(len(lg_game.channels) - 1):
+                                await lg_game.channels[-1].delete()
+                                del lg_game.channels[-1]
+
+                        await lg_game.channels[0].send(
+                            "La partie est finie, {} salons ont été supprimés".format(channel_counter))
+                        lg_game.__init__(0, 3)
+                        lg_game.state = 0
 
             for h in lg_game.menu_list:
                 if lg_game.state == h.active_state:
@@ -124,27 +145,7 @@ class Bot(discord.Client):
                                                 print(h.result_list)
                                                 number_of_response_not_filled = False
 
-                        """# only for roles
-            for h in lg_game.role_list:
-                if lg_game.state == h.menu.active_state:
-                    for i, item_id in enumerate(h.menu.allowed_id):
-                        if user.id == item_id:
-                            print("id allowed")
-                            for j, item in enumerate(reactions.menu):
-                                if item == reaction.emoji:
-                                    number_of_response_not_filled = True
-                                    print("reaction found")
-                                    for k in range(h.menu.number_of_response):
-                                        if number_of_response_not_filled:
-                                            if h.menu.result_list[i][k + 1] == -1:
-                                                print("operating change")
-                                                h.menu.result_list[i][k + 1] = j
-                                                print(h.menu.result_list)
-                                                number_of_response_not_filled = False
-                            if reaction.emoji == reactions.go_forward:
-                                h.menu.active_state = -1
-                                print("Choice validated")"""
-
+            # for roles
             for i in lg_game.players:
                 if lg_game.state == i.role.menu.active_state:
                     for j, item_id in enumerate(i.role.menu.allowed_id):

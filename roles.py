@@ -9,6 +9,7 @@ class Role:
         self.menu = menu.Menu([0], [0], 0, 1, -10)  # role's attributed menu
         self.ability = ability  # special variable for role's ability
         self.channel = []
+        self.other_menu = []
 
 
 def role_list():

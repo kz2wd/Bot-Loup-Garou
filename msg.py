@@ -29,3 +29,17 @@ sorciere_play = "La Sorcière va choisir si elle fait usage d'une de ses potions
 dictateur_play = "Le Dictateur va décider s'il fait un coup d'état"
 
 day_start = "Le village se réveille"
+
+vote = "Le vote va commencer"
+
+death_mix = "s'est fait abattre sur la place publique"
+
+lg_win = "Les loup-garous ont gagné"
+
+innocent_win = "Les villageois ont gagné"
+
+loup_blanc_win = "Le loup blanc a gagné"
+
+lovers_win = "Les amoureux ont gagné"
+
+nobody_win = "Tout le monde a succombé"
