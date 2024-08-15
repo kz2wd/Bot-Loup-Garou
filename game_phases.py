@@ -1,17 +1,27 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from player import Player
+    from menu_systems.vote_collector import VoteCollector
+
+from roles import Team, Role
 from enum import Enum, auto
 
 import discord
 
-from menu_systems.vote_collector import VoteCollector
+
 from menu_systems.vote_menu import send_player_vote_menu
-from player import Player
-from roles import Team, Role
+from menu_systems.menus import send_menu
 
 
 class GamePhase(Enum):
     WEREWOLVES_TURN = auto()
     VILLAGE_WAKING_UP = auto()
     VILLAGERS_VOTE = auto()
+    CUPIDON_TURN = auto()
+    SEER_TURN = auto()
+    WITCH_TURN = auto()
 
     async def execute(self, game, on_continue):
         match self:
@@ -75,5 +85,61 @@ class GamePhase(Enum):
                                             game.players,
                                             filter_player, 10, send_vote_result)
 
+            case GamePhase.CUPIDON_TURN:
+                print("Cupidon choosing")
 
+                def filter_cupidon(interaction: discord.Interaction) -> Player | None:
+                    if not (player := game.get_player(interaction.user)): return None
+                    if not (player.role == Role.CUPIDON): return None
+                    return player
 
+                async def send_vote_result(vote_result: VoteCollector):
+
+                    vote_result = vote_result.get_single_most()
+                    if vote_result:
+                        looked_player, _ = vote_result
+
+                    chosen_lovers = []
+                    async def kill_lovers():
+                        for l in chosen_lovers:
+                            game.kill_player(l, lambda p: f"{p.name} s'est donné la mort par amour.")
+
+                    for lover in chosen_lovers:
+                        lover.on_player_kill.insert(0, kill_lovers)
+
+                    await on_continue()
+
+                await send_player_vote_menu(game.channel, game.players, "La voyante...",
+                                            "... choisit qui observer!",
+                                            game.players,
+                                            filter_cupidon, 10, send_vote_result)
+
+            case GamePhase.SEER_TURN:
+                print("Seer choosing")
+                def filter_seer(interaction: discord.Interaction) -> Player | None:
+                    if not (player := game.get_player(interaction.user)): return None
+                    if not (player.role == Role.SEER): return None
+                    return player
+
+                async def send_vote_result(vote_result: VoteCollector):
+                    vote_result = vote_result.get_single_most()
+                    if vote_result:
+                        looked_player, _ = vote_result
+
+                        async def seer_reveal(interaction: discord.Interaction):
+                            p = filter_seer(interaction)
+                            if not p: return
+                            await interaction.response.send_message(f"{looked_player.name} est {looked_player.role.name}", ephemeral=True)
+
+                        await send_menu(game.channel, "La voyante se concentre,", "La boule magique indique...",
+                                        seer_reveal)
+
+                    await on_continue()
+
+                await send_player_vote_menu(game.channel, game.players, "La voyante...",
+                                            "... choisit qui observer!",
+                                            game.players,
+                                            filter_seer, 10, send_vote_result)
+            case GamePhase.WITCH_TURN:
+                print("Witch choosing")
+                pass

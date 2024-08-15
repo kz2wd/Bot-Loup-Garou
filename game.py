@@ -1,19 +1,24 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    pass
+
+from player import Player, FakePlayer
+from roles import Role, Team
+from game_phases import GamePhase
+from menu_systems.menus import send_menu
+
 import random
 
 import discord
-
-from game_phases import GamePhase
-from menu_systems.menus import send_menu
-from menu_systems.vote_collector import VoteCollector
-from menu_systems.vote_menu import send_player_vote_menu
-from player import Player, FakePlayer
-from roles import Role, Team
 
 
 class Game:
 
     def __init__(self, channel: discord.TextChannel, on_game_over):
-        self.phases = [GamePhase.WEREWOLVES_TURN, GamePhase.VILLAGE_WAKING_UP, GamePhase.VILLAGERS_VOTE]
+        self.phases = [GamePhase.SEER_TURN, GamePhase.WEREWOLVES_TURN, GamePhase.VILLAGE_WAKING_UP, GamePhase.VILLAGERS_VOTE]
         self.channel: discord.TextChannel = channel
         # Define player after the channel is known
         self.owner: Player | None = None
@@ -60,12 +65,14 @@ class Game:
         self.on_death_list.append(player)
 
     async def kill_player(self, player: Player, kill_message: callable = lambda player: f"{player.name} est mort."):
+        if player not in self.players: return
         await self.channel.send(kill_message(player))
         self.players.remove(player)
         if player.on_player_kill is not None:
             player.on_player_kill()
 
     async def handle_victory(self, continue_game: callable):
+        print("Checking victory")
         winner = self.get_winning_team()
         if winner is None:
             await continue_game()
@@ -77,7 +84,7 @@ class Game:
         num_players = len(self.players)
         num_werewolves = max(1, num_players // 3)
 
-        roles = [Role.WEREWOLF] * num_werewolves + [Role.VILLAGER] * (num_players - num_werewolves)
+        roles = [Role.WEREWOLF, Role.SEER]
         random.shuffle(roles)
 
         for p, role in zip(self.players, roles):

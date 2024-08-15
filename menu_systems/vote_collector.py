@@ -1,7 +1,10 @@
-import operator
-import threading
+from __future__ import annotations
+from typing import TYPE_CHECKING
 
-from player import Player
+if TYPE_CHECKING:
+    from player import Player
+
+import threading
 
 
 class VoteCollector:
