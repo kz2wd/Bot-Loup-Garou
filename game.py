@@ -6,7 +6,7 @@ from game_phases import GamePhase
 from menu_systems.menus import send_menu
 from menu_systems.vote_collector import VoteCollector
 from menu_systems.vote_menu import send_player_vote_menu
-from player import Player
+from player import Player, FakePlayer
 from roles import Role, Team
 
 
@@ -17,7 +17,7 @@ class Game:
         self.channel: discord.TextChannel = channel
         # Define player after the channel is known
         self.owner: Player | None = None
-        self.players: list[Player] = []
+        self.players: list[Player] = [FakePlayer("P1", self)]
         self.on_game_over = on_game_over
         self.on_death_list: list[Player] = []
         self.current_phase_index = 0
@@ -59,8 +59,8 @@ class Game:
     def schedule_kill_player(self, player: Player):
         self.on_death_list.append(player)
 
-    async def kill_player(self, player: Player):
-        await self.channel.send(f"{player.name} à été tué cette nuit.")
+    async def kill_player(self, player: Player, kill_message: callable = lambda player: f"{player.name} est mort."):
+        await self.channel.send(kill_message(player))
         self.players.remove(player)
         if player.on_player_kill is not None:
             player.on_player_kill()
@@ -69,6 +69,7 @@ class Game:
         winner = self.get_winning_team()
         if winner is None:
             await continue_game()
+            return
         await self.channel.send(f"La partie est terminée!\n\n{winner.victory_message}")
         self.on_game_over()
 

@@ -9,20 +9,19 @@ class VoteCollector:
         self.options = {opt: 0 for opt in options}
         self.mutex = threading.Lock()
         self.allowed_voters = voters
-        self.has_voted: set[Player] = set()
+        self.has_voted: dict[Player, any] = dict()
         self.expected_votes = len(voters)
 
     # CONSIDER THAT VOTER is included in the voters list!
     # Returns True if all voters have voted
     async def add_vote(self, option, voter: Player) -> bool:
         with self.mutex:
-            try:
-                self.options[option] += 1
-                self.expected_votes -= 0 if voter in self.has_voted else 1
-                self.has_voted.add(voter)
-            except KeyError as ignored:
-                pass
-        return self.expected_votes == 0
+            self.options[option] += 1
+            if voter in self.has_voted:
+                self.options[self.has_voted[voter]] -= 1  # remove previous vote
+            self.has_voted[voter] = option  # update new vote
+
+        return len(self.has_voted) == self.expected_votes
 
     def get_single_most(self) -> tuple[any, int] | None:
         max_votes = max((v for k, v in self.options.items()))

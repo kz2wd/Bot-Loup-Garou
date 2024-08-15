@@ -44,7 +44,7 @@ class GamePhase(Enum):
                 await send_player_vote_menu(game.channel, game.players, "Les loudivers...",
                                             "...choisissent leur cible!",
                                             werewolves_targets,
-                                            filter_werewolf, 3, send_vote_result)
+                                            filter_werewolf, 10, send_vote_result)
 
             case GamePhase.VILLAGE_WAKING_UP:
                 print("Waking up!")
@@ -68,12 +68,12 @@ class GamePhase(Enum):
                     else:
                         await game.channel.send("Les zumains n'ont pas réussi à choisir!")
 
-                    await on_continue()
+                    await game.handle_victory(on_continue)
 
-                await send_player_vote_menu(game.channel, game.players, "Les villageois",
+                await send_player_vote_menu(game.channel, game.players, "Les villageois...",
                                             "...choisissent un coupable!",
                                             game.players,
-                                            filter_player, 45, send_vote_result)
+                                            filter_player, 10, send_vote_result)
 
 
 

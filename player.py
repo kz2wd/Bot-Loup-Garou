@@ -1,6 +1,7 @@
 import discord
 
 from roles import Role, Team
+from unittest.mock import Mock
 
 
 class Player:
@@ -26,3 +27,16 @@ class Player:
                 role_msg += "\nLes autres loups sont " + ", ".join(p.name for p in other_wolves)
 
         return role_msg
+
+
+class FakePlayer(Player):
+    id = 123456789
+
+    def __init__(self, name, game):
+        mock_user = Mock(spec=discord.User)
+        mock_user.id = FakePlayer.id
+        FakePlayer.id += 1
+        mock_user.name = "fake_" + name
+        mock_user.display_name = name
+
+        super().__init__(mock_user, game)
