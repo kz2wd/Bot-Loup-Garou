@@ -26,6 +26,7 @@ class VoteCollector:
 
     def get_single_most(self) -> tuple[any, int] | None:
         max_votes = max((v for k, v in self.options.items()))
+        if max_votes == 0: return None
         most_voted = [(choice, amount) for (choice, amount) in self.options.items() if amount == max_votes]
         if len(most_voted) == 1:
             return most_voted[0]

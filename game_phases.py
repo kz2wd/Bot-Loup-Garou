@@ -19,6 +19,7 @@ class GamePhase(Enum):
                 print("Werewolves hunting")
                 werewolves = [player for player in game.players if player.role.team == Team.WEREWOLF]
                 if not werewolves:
+                    print("Continuing")
                     await on_continue()
 
                 async def send_vote_result(vote_result: VoteCollector):
@@ -30,6 +31,7 @@ class GamePhase(Enum):
                     else:
                         await game.channel.send("Les loudivers n'ont pas pu se décider cette nuit!")
 
+                    print("Continuing")
                     await on_continue()
 
                 werewolves_targets = [player for player in game.players]  # if player.role.team != Team.WEREWOLF
@@ -42,7 +44,7 @@ class GamePhase(Enum):
                 await send_player_vote_menu(game.channel, game.players, "Les loudivers...",
                                             "...choisissent leur cible!",
                                             werewolves_targets,
-                                            filter_werewolf, 15, send_vote_result)
+                                            filter_werewolf, 3, send_vote_result)
 
             case GamePhase.VILLAGE_WAKING_UP:
                 print("Waking up!")

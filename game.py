@@ -93,7 +93,7 @@ class Game:
     async def play_phase_and_go_to_next(self):
         phase_to_play = self.current_phase_index
         print(f"Playing phase {phase_to_play}")
-        self.current_phase_index += 1 % len(self.phases)
+        self.current_phase_index = (self.current_phase_index + 1) % len(self.phases)
 
         await self.phases[phase_to_play].execute(self, self.play_phase_and_go_to_next)
 

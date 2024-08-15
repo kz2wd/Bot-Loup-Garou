@@ -26,7 +26,8 @@ class TimedSelectView(discord.ui.View):
             if self.message:
                 await self.message.edit(content=f"Temps restant: {self.timeout} seconds\n\n{self.message.content}")
 
-        await self.end()
+        # For some reason, call self.end() here breaks after the message edit
+        await self.on_time_over()
 
     async def end(self):
         if self.timer_task:
@@ -34,7 +35,6 @@ class TimedSelectView(discord.ui.View):
             self.timer_task = None
             if self.message:
                 await self.message.edit(content=f"Vote fini\n\n{self.message.content}")
-
         try:
             await self.on_time_over()
         except TypeError as ignored:
