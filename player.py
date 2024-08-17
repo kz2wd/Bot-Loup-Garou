@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Awaitable
 
 if TYPE_CHECKING:
     from game import Game
@@ -13,14 +13,16 @@ from unittest.mock import Mock
 class Player:
     def __init__(self, user: discord.User, game: Game):
         self.user: discord.user = user
-        self.role: Role = None
-        self.game = game
+        self.role: Role | None = None
+        self.game: Game = game
         self.name: str = m.display_name if (m := game.channel.guild.get_member(user.id)) else user.name
-        self.on_player_kill: list[callable] = []
+        self.on_player_kill: list[Callable[[], Awaitable[None]]] = []  # Warning : if the function blocks the execution, game will be broken.
+        self.is_in_love = False
 
     def assign_role(self, role: Role):
         self.role = role
-        self.on_player_kill.append(self.role.on_player_kill)
+        if self.role.on_player_kill:
+            self.on_player_kill.append(lambda: self.role.on_player_kill(self))
 
     def reveal_role(self) -> str:
         role_msg = f"Vous êtes {self.role.name}!"

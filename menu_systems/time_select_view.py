@@ -11,8 +11,9 @@ import discord
 
 
 class TimedSelectView(discord.ui.View):
-    def __init__(self, channel, timeout: int, on_time_over: callable):
+    def __init__(self, channel, timeout: int, on_time_over: callable, remaining_time_on_end = 5):
         super().__init__()
+        self.remaining_time_on_end = remaining_time_on_end
         self.timeout = timeout
         self.on_time_over = on_time_over
         self.timer_task = None  # Task reference for the timer
@@ -36,6 +37,9 @@ class TimedSelectView(discord.ui.View):
 
         # For some reason, call self.end() here breaks after the message edit
         await self.on_time_over()
+
+    async def premature_end(self):
+        self.timeout = min(self.timeout, self.remaining_time_on_end)
 
     async def end(self):
         if self.timer_task:

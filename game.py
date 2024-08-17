@@ -18,14 +18,15 @@ import discord
 class Game:
 
     def __init__(self, channel: discord.TextChannel, on_game_over):
-        self.phases = [GamePhase.SEER_TURN, GamePhase.WEREWOLVES_TURN, GamePhase.VILLAGE_WAKING_UP, GamePhase.VILLAGERS_VOTE]
+        self.phases: list[GamePhase] = [GamePhase.CUPIDON_TURN, GamePhase.SEER_TURN, GamePhase.WEREWOLVES_TURN, GamePhase.WITCH_TURN, GamePhase.VILLAGE_WAKING_UP, GamePhase.VILLAGERS_VOTE]
         self.channel: discord.TextChannel = channel
         # Define player after the channel is known
         self.owner: Player | None = None
-        self.players: list[Player] = [FakePlayer("P1", self)]
+        self.players: list[Player] = []
         self.on_game_over = on_game_over
         self.on_death_list: list[Player] = []
         self.current_phase_index = 0
+        self.roles = [Role.WEREWOLF, Role.CUPIDON, Role.SEER, Role.HUNTER]
 
     def set_owner(self, owner: discord.User):
         self.owner = Player(owner, self)
@@ -48,6 +49,8 @@ class Game:
 
     def get_winning_team(self) -> Team | None:
         if len(self.players) == 0: return Team.NOBODY
+        if all(player.is_in_love for player in self.players): return Team.LOVERS
+
         teams = {player.role.team for player in self.players}
         if len(teams) == 1: return teams.pop()
         return None
@@ -64,12 +67,16 @@ class Game:
     def schedule_kill_player(self, player: Player):
         self.on_death_list.append(player)
 
+    def unschedule_kill_player(self, player: Player):
+        self.on_death_list.remove(player)
+
     async def kill_player(self, player: Player, kill_message: callable = lambda player: f"{player.name} est mort."):
         if player not in self.players: return
-        await self.channel.send(kill_message(player))
+        await self.channel.send(kill_message(player) + f"\nC'était {player.role.name}!")
         self.players.remove(player)
-        if player.on_player_kill is not None:
-            player.on_player_kill()
+        print(len(player.on_player_kill))
+        for action in player.on_player_kill:
+            await action()
 
     async def handle_victory(self, continue_game: callable):
         print("Checking victory")
@@ -84,10 +91,9 @@ class Game:
         num_players = len(self.players)
         num_werewolves = max(1, num_players // 3)
 
-        roles = [Role.WEREWOLF, Role.SEER]
-        random.shuffle(roles)
+        random.shuffle(self.roles)
 
-        for p, role in zip(self.players, roles):
+        for p, role in zip(self.players, self.roles):
             p.assign_role(role)
 
         async def role_reveal_button(interaction: discord.Interaction):

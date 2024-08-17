@@ -35,7 +35,6 @@ async def send_selection_menu(channel, name: str, placeholder: str, options: lis
     select.callback = select_callback
 
     view.add_item(select)
-    view.add_item(Button(label="Afficher les votes actuels"))
 
     # Send the message with the select menu
     message = await channel.send(content=name, view=view)
